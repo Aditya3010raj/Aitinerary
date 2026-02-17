@@ -19,34 +19,52 @@ function PlaceCardItem({ place }) {
         const finalPhotoUrl = PHOTO_REF_URL.replace('{NAME}', photoName);
         setPhotoURL(finalPhotoUrl);
       }
-    } catch (error) {}
+    } catch (error) {
+      console.error("Error fetching place photo:", error);
+    }
   };
 
   const mapsUrl = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(place?.placeName);
 
   return (
     <a href={mapsUrl} target='_blank' rel="noopener noreferrer" className='block group'>
-      <div className='p-3 border rounded-2xl flex gap-4 hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-900 transition-all bg-white dark:bg-gray-900 dark:border-gray-800 h-full'>
-        <div className='relative overflow-hidden rounded-xl h-[120px] w-[140px] flex-shrink-0'>
+      {/* Mobile: flex-col (Vertical)
+          Small Screens and up: sm:flex-row (Horizontal) 
+      */}
+      <div className='p-3 border rounded-3xl flex flex-col sm:flex-row gap-4 hover:shadow-2xl hover:border-red-200 dark:hover:border-red-900/50 transition-all duration-300 bg-white dark:bg-gray-900 dark:border-gray-800 h-full'>
+        
+        {/* Image Container: Full width on mobile, fixed width on desktop */}
+        <div className='relative overflow-hidden rounded-2xl h-[180px] sm:h-[120px] w-full sm:w-[160px] flex-shrink-0'>
           <img 
             src={photoURL} 
-            className='w-full h-full object-cover group-hover:scale-110 transition-transform duration-500' 
+            className='w-full h-full object-cover group-hover:scale-110 transition-transform duration-700' 
             alt={place?.placeName} 
           />
-          <div className='absolute top-2 left-2 px-2 py-1 bg-black/60 backdrop-blur-md text-white text-[10px] rounded-lg'>
-             📍 {place?.travelTime || place?.timeToTravel}
+          {/* Floating Time Badge */}
+          <div className='absolute top-3 left-3 px-3 py-1 bg-black/50 backdrop-blur-md text-white text-[11px] font-bold rounded-full border border-white/20 shadow-lg'>
+             🕒 {place?.travelTime || place?.timeToTravel || "Visit"}
           </div>
         </div>
 
-        <div className='flex flex-col justify-between py-1'>
+        {/* Content Section */}
+        <div className='flex flex-col justify-between py-1 w-full'>
           <div>
-            <h2 className='font-bold text-lg dark:text-white line-clamp-1 group-hover:text-blue-600 transition-colors'>{place?.placeName}</h2>
-            <p className='text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-1 leading-relaxed'>{place?.placeDetails}</p>
+            <h2 className='font-bold text-xl sm:text-lg dark:text-white group-hover:text-red-600 transition-colors duration-300'>
+              {place?.placeName}
+            </h2>
+            <p className='text-sm sm:text-xs text-gray-500 dark:text-gray-400 line-clamp-2 mt-2 leading-relaxed'>
+              {place?.placeDetails}
+            </p>
           </div>
           
-          <div className='flex items-center gap-3 mt-2'>
-            <span className='text-[11px] font-bold px-2 py-1 bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400 rounded-md border border-green-100 dark:border-green-900/50'>
-              💰 {place?.ticketPricing || 'Free'}
+          <div className='flex items-center justify-between mt-4 sm:mt-2'>
+            <span className='text-[12px] sm:text-[11px] font-extrabold px-3 py-1.5 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 rounded-xl border border-red-100 dark:border-red-900/30'>
+               🎟️ {place?.ticketPricing || 'Free'}
+            </span>
+            
+            {/* Hidden on desktop, visible on mobile to encourage tapping */}
+            <span className='sm:hidden text-xs font-semibold text-blue-600 dark:text-blue-400'>
+              View on Map →
             </span>
           </div>
         </div>
