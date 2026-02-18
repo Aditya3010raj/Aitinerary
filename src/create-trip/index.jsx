@@ -3,13 +3,9 @@ import GeoapifyAutocomplete from '@/components/GeoapifyAutocomplete'
 import { SelectBudgetList, AI_PROMPT } from "@/contants/options"
 import { Button } from "@/components/ui/button"
 import { toast } from "sonner"
-import { chatSession } from '@/service/AImodel';
 import { FcGoogle } from "react-icons/fc";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/service/firebasconfig";
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom';
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
   Dialog,
   DialogContent,
@@ -53,7 +49,6 @@ const SelectTravelersList = [
 
 function CreateTrip() {
   const [opendialog, setOpenDialog] = useState(false);
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
@@ -95,9 +90,10 @@ function CreateTrip() {
       return toast.error("Please enter days less than 5");
     }
 
-    setLoading(true);
-    toast.info("Crafting your perfect itinerary... 🚀");
+    // Generate unique ID for the route
+    const docID = Date.now().toString(); 
 
+    // Construct the prompt to pass to the next page
     const FINAL_PROMPT = AI_PROMPT
       .replace('{location}', formData?.destination?.label)
       .replace('{days}', formData?.days)
@@ -105,34 +101,14 @@ function CreateTrip() {
       .replace('{budget}', formData?.budget?.title)
       .replace('{totalDays}', formData?.days);
 
-    try {
-      const result = await chatSession.sendMessage(FINAL_PROMPT);
-      const tripResponse = result?.response?.text();
-      const jsonMatch = tripResponse.match(/\{[\s\S]*\}/);
-      await saveAitrip(jsonMatch ? jsonMatch[0] : tripResponse);
-    } catch (error) {
-      toast.error("Failed to generate trip. Quota might be reached.");
-      setLoading(false); 
-    }
+    // Navigate immediately to ViewTrip with the prompt and selection data
+    navigate('/view-trip/' + docID, { 
+      state: { 
+        prompt: FINAL_PROMPT, 
+        userSelection: formData 
+      } 
+    });
   };
-
-  const saveAitrip = async (tripData) => {
-    try {
-      const user = JSON.parse(localStorage.getItem('user'));
-      const docID = Date.now().toString(); 
-      await setDoc(doc(db, "AITrips", docID), {
-        userSelection: formData,
-        tripData: JSON.parse(tripData),
-        userEmail: user?.email,
-        id: docID
-      });
-      navigate('/view-trip/' + docID);
-    } catch (error) {
-      toast.error("Error saving your trip.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   const userProfile = (tokenInfo) => {
     axios.get(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${tokenInfo?.access_token}`)
@@ -234,10 +210,9 @@ function CreateTrip() {
       {/* Generate Button */}
       <div className='mt-24 flex justify-center sm:justify-end'>
         <Button
-          disabled={loading}
           onClick={handleGenerateTrip}
           className="px-12 py-7 text-lg font-bold rounded-2xl shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 transition-all dark:bg-white dark:text-black">
-          {loading ? <AiOutlineLoading3Quarters className='h-6 w-6 animate-spin' /> : 'Generate My Trip'}
+          Generate My Trip
         </Button>
       </div>
 

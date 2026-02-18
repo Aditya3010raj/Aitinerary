@@ -1,39 +1,82 @@
 import { db } from '@/service/firebasconfig';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom'; // Added useLocation
 import { toast } from 'sonner';
 import InfoSection from './components/infosection';
 import Hotels from './components/hotels';
 import PlacesToVisit from './components/PlacesToVisit';
 import Footer from './components/footer';
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { chatSession } from '@/service/AImodel'; // Added AI import
 
 function Viewtrip() {
     const { tripID } = useParams();
+    const location = useLocation(); // Hook to catch the prompt from CreateTrip
     const [trip, setTrip] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (tripID) {
-            GetTripData();
+            CheckAndGenerateTrip();
         }
     }, [tripID]);
 
-    const GetTripData = async () => {
+    /**
+     * Logic to either fetch existing trip or generate a new one
+     */
+    const CheckAndGenerateTrip = async () => {
         setLoading(true);
         try {
             const docRef = doc(db, 'AITrips', tripID);
             const docSnap = await getDoc(docRef);
 
             if (docSnap.exists()) {
+                // Scenario A: User is viewing an existing trip
                 setTrip(docSnap.data());
+                setLoading(false);
+            } else if (location.state?.prompt) {
+                // Scenario B: User just clicked "Generate" and we have a prompt
+                GenerateAiTrip(location.state.prompt, location.state.userSelection);
             } else {
                 toast.error('No trip found!');
+                setLoading(false);
             }
         } catch (error) {
             console.error("Error:", error);
             toast.error("Failed to fetch trip data.");
+            setLoading(false);
+        }
+    };
+
+    /**
+     * The AI Generation Engine moved from CreateTrip to here
+     */
+    const GenerateAiTrip = async (prompt, userSelection) => {
+        try {
+            const result = await chatSession.sendMessage(prompt);
+            const tripResponse = result?.response?.text();
+            
+            // Clean AI response to ensure valid JSON
+            const jsonMatch = tripResponse.match(/\{[\s\S]*\}/);
+            const tripData = JSON.parse(jsonMatch ? jsonMatch[0] : tripResponse);
+
+            const user = JSON.parse(localStorage.getItem('user'));
+
+            const finalData = {
+                userSelection: userSelection,
+                tripData: tripData,
+                userEmail: user?.email,
+                id: tripID
+            };
+
+            // Save the newly generated trip to Firebase
+            await setDoc(doc(db, "AITrips", tripID), finalData);
+            
+            setTrip(finalData);
+        } catch (error) {
+            console.error("AI Error:", error);
+            toast.error("Failed to generate adventure. Check your API quota.");
         } finally {
             setLoading(false);
         }
