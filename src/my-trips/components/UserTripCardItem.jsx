@@ -12,21 +12,35 @@ function UserTripCardItem({ trip, refreshData }) {
   const [photoUrl, setPhotoUrl] = useState('/placeholder.jpg');
 
   useEffect(() => {
-    trip && GetPlacePhoto();
+    if (trip) {
+      GetPlacePhoto();
+    }
   }, [trip]);
 
-  // Fetch the actual image of the destination
   const GetPlacePhoto = async () => {
+    // Check if destination exists to avoid "undefined" errors
+    const destinationName = trip?.userSelection?.destination?.label || trip?.userSelection?.location;
+    
+    if (!destinationName) return;
+
     const data = {
-      textQuery: trip?.userSelection?.destination?.label
+      textQuery: destinationName
     }
+
     try {
       const resp = await GetPlaceDetails(data);
-      const photoName = resp.data.places[0].photos[3].name;
-      const finalPhotoUrl = PHOTO_REF_URL.replace('{NAME}', photoName);
-      setPhotoUrl(finalPhotoUrl);
+      
+      // FIX: Check if places and photos actually exist before accessing index [3]
+      const firstPlace = resp.data.places?.[0];
+      if (firstPlace?.photos && firstPlace.photos.length > 0) {
+        // Use the first available photo if the 4th one (index 3) doesn't exist
+        const photoName = firstPlace.photos[3]?.name || firstPlace.photos[0].name;
+        const finalPhotoUrl = PHOTO_REF_URL.replace('{NAME}', photoName);
+        setPhotoUrl(finalPhotoUrl);
+      }
     } catch (error) {
       console.error("Error fetching photo:", error);
+      // Fallback is already set to '/placeholder.jpg' in state
     }
   }
 
@@ -48,7 +62,6 @@ function UserTripCardItem({ trip, refreshData }) {
 
   return (
     <div className='relative group h-full'>
-      {/* --- Delete Button (Visible on Hover) --- */}
       <div 
         onClick={deleteTrip}
         className='absolute top-4 right-4 z-30 p-2 bg-red-500/90 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-all cursor-pointer hover:bg-red-600 shadow-lg backdrop-blur-sm'
@@ -59,12 +72,12 @@ function UserTripCardItem({ trip, refreshData }) {
       <Link to={'/view-trip/' + trip?.id}>
         <div className='flex flex-col h-full hover:scale-[1.02] transition-all duration-300 cursor-pointer p-3 border rounded-2xl dark:border-gray-800 dark:bg-gray-900 bg-white shadow-sm hover:shadow-xl'>
           
-          {/* Destination Image */}
-          <div className='overflow-hidden rounded-xl h-[200px]'>
+          <div className='overflow-hidden rounded-xl h-[200px] bg-gray-100 dark:bg-gray-800'>
              <img 
               src={photoUrl} 
               className='h-full w-full object-cover transition-transform duration-500 group-hover:scale-110' 
-              alt="destination"
+              alt={trip?.userSelection?.destination?.label || "destination"}
+              onError={(e) => { e.target.src = '/placeholder.jpg' }} // Secondary fallback
             />
           </div>
 
@@ -78,7 +91,6 @@ function UserTripCardItem({ trip, refreshData }) {
               </p>
             </div>
 
-            {/* Traveler Badge */}
             <div className='mt-4'>
               <span className='px-3 py-1 text-xs bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300 rounded-full font-semibold border border-blue-100 dark:border-blue-800'>
                 {trip?.userSelection?.travelers?.icon} {trip?.userSelection?.travelers?.title}
