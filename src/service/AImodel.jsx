@@ -3,9 +3,10 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
 const genAI = new GoogleGenerativeAI(apiKey);
 
-const model = genAI.getGenerativeModel({
-  model: "gemini-3-flash-preview",
-});
+const model = genAI.getGenerativeModel(
+  { model: "gemini-3-flash-preview" },
+  { apiVersion: 'v1beta' } // Add this second argument
+);
 
 const generationConfig = {
   temperature: 1,
