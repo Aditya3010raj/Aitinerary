@@ -1,6 +1,6 @@
 # 🌍 Aitinerary: AI-Powered Travel Architect
 
-**Live Demo:** [aitinerary-path.vercel.app](aitinerary-beta.vercel.app)  
+**Live Demo:** [Aitinerary](https://aitinerary-beta.vercel.app/)  
 **Author:** [Adityaraj Chatterjee](https://github.com/Aditya3010raj)
 
 ---
