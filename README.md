@@ -20,7 +20,7 @@ Aitinerary is a full-stack, intelligent travel planning platform that transforms
 
 ## 🛠️ Tech Stack
 - **Framework:** Next.js 14 (App Router)
-- **AI Model:** Google Gemini 1.5 Flash
+- **AI Model:** Google Gemini 3 Flash Preview
 - **Database & Auth:** Firebase (Firestore & Google Auth)
 - **Styling:** Tailwind CSS + Shadcn/UI
 - **Data Fetching:** Axios & TanStack Query
