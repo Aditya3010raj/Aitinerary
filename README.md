@@ -8,7 +8,7 @@
 Aitinerary is a full-stack, intelligent travel planning platform that transforms vague travel desires into high-precision, day-wise itineraries. Built with **Next.js 14**, it leverages the **Gemini 1.5 Flash** model to handle complex constraints like budget, group size, and destination-specific logistics.
 
 ## 🔗 Project Links
-- **Live Deployment:** [View Live App](https://aitinerary-path.vercel.app)
+- **Live Deployment:** [View Live App](https://aitinerary-beta.vercel.app/)
 - **GitHub Repository:** [Source Code](https://github.com/Aditya3010raj/aitinerary)
 - **Documentation:** [Wiki/Docs](https://github.com/Aditya3010raj/aitinerary/wiki)
 
